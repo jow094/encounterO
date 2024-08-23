@@ -1,0 +1,200 @@
+MVC.txt
+
+p556~
+
+Plain Old Java Object
+
+ * Model1 방식
+ 				 -요청->
+ 	[클라이언트] 		  [JSP]   <->  [DB] 
+                 <-응답-
+ 
+  => JSP 페이지에서 처리(DB처리,비지니스로직),
+      JSP 페이지에서 화면 출력
+      
+      
+ * Model2 방식 (MVC 패턴) 
+ 				
+ 				-요청->
+   [클라이언트]			[Controller]    <->  [Model]	<->   [DAO]  <->  [DB]	
+ 						  (Servlet)			  (Java)
+ 					  /
+ 				[View]	  
+ 				 (JSP)
+ 		
+	p567~ 				 
+ 				-요청->
+   [클라이언트]			[FrontController]    <->  [Controller]	<->   [Model(DAO)]  <->  [DB]	
+ 						  (Servlet)			      (Java)
+ 					  /
+ 				[View]	  
+ 				 (JSP)
+ 
+  * MVC : Model, View, Controller를 사용한 개발 패턴
+ 	=> 관심사의 분리 (분업)	 => 좋은코드를 작성
+ 	=> 각각의 동작을 수행해야함	
+ 				 
+ 
+ 
+ 
+  * 상대주소
+
+   ./MemberLogin.me  (가상주소)
+    => ./ 의 의미? /MVC6 (프로젝트명)  
+  
+   ./member/loginForm.jsp  (실제주소)
+    => ./ 의 의미? /webapp (웹앱폴더)
+ 
+
+
+start.jsp (./Main.me) -> web.xml ->MemberFrontController -> 
+					1) 가상주소계산 command = /Main.me
+                                        2) if(command.equals("/Main.me") 
+                                             패턴1,2,3
+					3) 페이지 이동
+
+ 
+ 
+ CREATE TABLE `jspdb`.`itwill_board` (
+  `bno` INT NOT NULL,
+  `name` VARCHAR(50) NOT NULL,
+  `pass` VARCHAR(50) NOT NULL,
+  `subject` VARCHAR(200) NOT NULL,
+  `content` VARCHAR(5000) NULL,
+  `readcount` INT NULL,
+  `re_ref` INT NULL,
+  `re_lev` INT NULL,
+  `re_seq` INT NULL,
+  `date` DATE NULL,
+  `ip` VARCHAR(45) NULL,
+  `file` VARCHAR(100) NULL,
+  PRIMARY KEY (`bno`));
+ 
+ 
+ *  게시판(CRUD) 만들기
+ 
+ 	- 글쓰기 
+ 	  => 사용자가 정보를 입력해서 DB에 저장
+ 	  
+ 	- 글 리스트(목록) 조회
+ 	  + 페이징처리   
+ 	  1) 한번에 내용(글)을 원하는 만큼만 가져오기
+ 	  2) 페이지 블럭 계산
+ 	  3) 특정페이지 이동후 다시 리스트 이동할때 이전의 페이정보 기억
+ 	  
+ 
+    - 글 본문 조회
+    
+    - 글 정보 수정 
+    
+    - 글 정보 삭제
+    
+    - 답글 쓰기 
+    
+    - 첨부파일 업로드/다운로드
+    
+     	  
+ 	
+ * IPv6 -> IPv4 설정 변경
+   프로젝트 이름 우클릭 -> run as -> run configuration
+    -> tomcat 선택 후 -> arugument탭 -> VM arugument에  아래 내용 입력 
+    -> apply & run 
+    
+ [-Djava.net.preferIPv4Stack=true]
+   ^               ^^  ^   (대문자)
+   
+ * P443
+   커넥션풀 ( Connection Pool ) : 디비 연결정보를 사용하고나서 반납
+   
+   
+   1) service()메서드 실행시 1개씩 커넥션 풀 할당
+   2) 커넥션의 개수를 제한
+   3) 커넥션 객체를 모두 사용하고나면 자원 회수(반납)
+   
+   
+  	 브라우저 요청 	->		사용가능한 커넥션 여부 체크
+   ./BoardWriteAction.bo		     O -> 커넥션 할당 ->객체사용-> 객체 반납
+      							     X -> 일단 대기(반납될때까지/설정된 시간)					
+                                       -> 커넥션 반납O -> 커넥션 할당 ->객체사용-> 객체 반납
+                                       -> 커넥션 반납X -> 커넥션 임시생성 ->  커넥션 할당 ->객체사용-> 객체 반납(소멸)
+   
+   
+   
+ ./META_INF/context.xml
+ <?xml version="1.0" encoding="UTF-8"?>
+ 
+<Context>
+	<Resource 
+	   name="jdbc/MVC" 	 						 // 리소스이름
+	   auth="Container" 						 // 자원 관리자
+	   type="javax.sql.DataSource" 				 // 전달된 데이터 타입(자바)
+	   driverClassName="com.mysql.cj.jdbc.Driver"// 드라이버 주소
+	   username="root" 							 // 디비 아이디
+	   password="1234" 							 // 디비 비밀번호
+	   url="jdbc:mysql:localhost:3306/jspdb" 	 // 디비 주소
+	   maxWait="5000"							 // 커넥션 대기시간(ms) 
+	     />
+
+</Context>
+
+
+https://commons.apache.org/
+
+
+
+  * 게시판 답글 알고리즘
+  
+  re_ref : 그룹번호,
+      일반글 작성시 bno와 동일한 값,답글 작성시 부모글에 ref과 동일한 형태
+  re_lev : 레벨값(들여쓰기)
+  	  일반글 작성시 0, 답글 작성 부모글 lev + 1
+  re_seq : 글 순서
+      일반글 작성시 0, 답글 작성 부모글 lev + 1
+      
+      
+  bno	subject			ref		lev		seq
+  -------------------------------------------------
+   1	일반1			1		0		0
+   2	일반2			2		0		0
+   3	일반3			3		0		0
+   4	답3-1			3		1		1
+   5	답3-1-1			3		2		2
+   6	답3-2			3		1		1		
+  	    
+   
+   정렬 : ref -> DESC & seq -> ASC
+   
+   bno	subject			ref		lev		seq
+  -------------------------------------------------   
+	8	일반4           8       0       0
+	11	>답4-3			8		1		1
+	10	>답4-2			8		1		1+1
+	9	>답4-1			8		1		1+1+1
+    3	일반3			3		0		0	
+    6	>답3-2			3		1		1
+	7	>>답3-2-1		3		2		2
+    4	>답3-1			3		1		1+1=2+1=3	
+	5	>>답3-1-1		3		2		2+1=3+1=4
+    2	일반2			2		0		0	
+    1	일반1			1		0		0
+
+
+
+p305 파일업로드
+<form action="" method="post" class="appForm"
+				enctype="multipart/form-data" >
+				
+- 전달 방식은 반드시 POST 방식
+- enctype = "multipart/form-data" 설정
+  (위 속성이 없는 경우는 파일의 이름만 전달)
+  
+ <input type="file" name="file" accept="image/*">
+ - name 속성 사용하여 파라메터값을 전달
+ - accept="image/*" 사용자로부터 특정 형식의 파일만 업로드 제한
+
+
+ 
+ 
+ 
+ 
+
